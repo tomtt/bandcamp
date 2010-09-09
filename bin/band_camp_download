@@ -2,7 +2,16 @@
 
 require 'band_camp'
 
-ARGV.each do |url|
-  band = BandCamp::Band.new(url)
-  band.download
+if ARGV.size > 0
+  ARGV.each do |url|
+    band = BandCamp::Band.new(url)
+    band.download
+  end
+else
+  usage = <<EOT
+Usage: #{$0} http://example.bandcamp.com [http://otherexample.bandcamp.com/]*
+This script finds all the songs shown on the bandcamp page and downloads them to
+./download/band_name/0x-track_name.mp3
+EOT
+  STDERR.puts usage
 end
