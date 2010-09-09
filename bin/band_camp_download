@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+
+require 'band_camp'
+
+ARGV.each do |url|
+  band = BandCamp::Band.new(url)
+  band.download
+end
