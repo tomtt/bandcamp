@@ -5,6 +5,7 @@ module BandCamp
 
       def self.extract_from_argv
         options = {}
+        options[:debug] = true
 
         OptionParser.new do |opts|
           opts.banner = "Usage: example.rb [options]"
