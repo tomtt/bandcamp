@@ -51,7 +51,9 @@ module BandCamp
     end
 
     def path_for_download
-      File.join("download", BandCamp::file_safe_string(band_name))
+      File.join("download",
+                BandCamp::file_safe_string(band_name),
+                BandCamp::file_safe_string(album_name))
     end
   end
 end
