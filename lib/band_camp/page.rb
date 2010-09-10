@@ -1,7 +1,7 @@
 require "band_camp/song"
-require 'net/http'
-require 'uri'
-require 'harmony'
+require "band_camp/downloader"
+require "harmony"
+require "hpricot"
 
 module BandCamp
   class Page
@@ -57,12 +57,31 @@ module BandCamp
                       :band_name => band_name,
                       :album_name => album_name)
       }
+
+      download_album_art
     end
 
     def path_for_download
       File.join("download",
                 BandCamp::file_safe_string(band_name),
                 BandCamp::file_safe_string(album_name))
+    end
+
+    def hpricot
+      @hpricot ||= Hpricot.parse(page_html)
+    end
+
+    private
+
+    def download_album_art
+      # Assumes the directory where the album is downloaded already exists
+      url = hpricot.search("#tralbumArt img").first.attributes["src"]
+      file_name = File.join(path_for_download, "album.jpg")
+      if @options[:try]
+        puts "[try] Saving #{file_name}"
+      else
+        Downloader.download(:url => url, :file_name => file_name, :debug => @options[:debug])
+      end
     end
   end
 end

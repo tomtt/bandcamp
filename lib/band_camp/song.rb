@@ -1,5 +1,4 @@
-require 'net/http'
-require 'uri'
+require "band_camp/downloader"
 require "id3lib"
 
 module BandCamp
@@ -23,18 +22,11 @@ module BandCamp
         song_name = "%02d-%s" % [options[:index] + 1, song_name]
       end
       file_name = File.join(band_path, song_name + ".mp3")
-      print "[try] " if @options[:try]
-      puts "Saving #{file_name}" if @options[:debug] || @options[:try]
 
-      unless @options[:try]
-        song_url = URI.parse(url)
-        res = Net::HTTP.start(song_url.host, song_url.port) {|http|
-          http.get("#{song_url.path}?#{song_url.query}")
-        }
-
-        File.open(file_name, "w") do |file|
-          file.puts res.body
-        end
+      if @options[:try]
+        puts "[try] Saving #{file_name}"
+      else
+        Downloader.download(:url => url, :file_name => file_name, :debug => @options[:debug])
 
         id3_tag = ID3Lib::Tag.new(file_name)
         id3_tag.title = title

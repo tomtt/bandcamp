@@ -17,5 +17,6 @@ Gem::Specification.new do |s|
   s.executables  = ['band_camp_download']
   s.require_path = 'lib'
   s.add_runtime_dependency 'harmony'
+  s.add_runtime_dependency 'hpricot'
   s.add_runtime_dependency 'id3lib-ruby'
 end
