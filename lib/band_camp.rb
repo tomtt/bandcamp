@@ -1,7 +1,8 @@
-require "band_camp/band"
+require "band_camp/page"
+require "band_camp/cli/options"
 
 module BandCamp
   def self.file_safe_string(string)
-    string.tr("^a-zA-Z0-9-_", "_").gsub(/_+/, "_")
+    string.gsub("&", " and ").tr("^a-zA-Z0-9-", "_").gsub(/_+/, "_")
   end
 end

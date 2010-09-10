@@ -4,14 +4,15 @@ require 'uri'
 require 'harmony'
 
 module BandCamp
-  class Band
-    def initialize(url)
+  class Page
+    def initialize(url, options = {})
+      @options = options
       @url = url
     end
 
     def page_html
       unless @page_html
-        puts "Getting content of \"#{@url}\""
+        puts "Getting content of \"#{@url}\"" if @options[:debug]
         @page_html = Net::HTTP.get(URI.parse(@url))
       end
       @page_html
@@ -19,8 +20,9 @@ module BandCamp
 
     def harmony_page
       unless @harmony_page
+        # Assigning to a variable first to make the puts statements make sense
         html = page_html
-        puts "Initializing headless browser"
+        puts "Initializing headless browser" if @options[:debug]
         @harmony_page = Harmony::Page.new(html)
       end
       @harmony_page
@@ -28,22 +30,28 @@ module BandCamp
 
     def songs
       @songs ||= harmony_page.execute_js("TralbumData.trackinfo").map do |song_object|
-        Song.new(song_object.title.to_s, song_object.title_link.to_s, song_object.file.to_s)
+        Song.new(song_object.title.to_s, song_object.title_link.to_s, song_object.file.to_s, @options)
       end
     end
 
-    def name
+    def band_name
       harmony_page.execute_js("BandData.name")
+    end
+
+    def album_name
+      harmony_page.execute_js("TralbumData.current.title")
     end
 
     def download
       dir = path_for_download
-      `mkdir -p #{dir}`
+      unless @options[:try]
+        `mkdir -p #{dir}`
+      end
       songs.each_with_index { |song, index| song.download(dir, index) }
     end
 
     def path_for_download
-      File.join("download", BandCamp::file_safe_string(name))
+      File.join("download", BandCamp::file_safe_string(band_name))
     end
   end
 end

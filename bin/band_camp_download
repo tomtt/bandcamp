@@ -1,11 +1,17 @@
 #!/usr/bin/env ruby
 
+lib_dir = File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib'))
+$:.unshift(lib_dir) unless
+  $:.include?(lib_dir) || $:.include?(File.expand_path(lib_dir))
+
 require 'band_camp'
+
+options = BandCamp::Cli::Options.extract_from_argv
 
 if ARGV.size > 0
   ARGV.each do |url|
-    band = BandCamp::Band.new(url)
-    band.download
+    page = BandCamp::Page.new(url, options)
+    page.download
   end
 else
   usage = <<EOT
