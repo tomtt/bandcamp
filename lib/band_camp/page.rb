@@ -35,11 +35,11 @@ module BandCamp
     end
 
     def band_name
-      harmony_page.execute_js("BandData.name")
+      @band_name ||= harmony_page.execute_js("BandData.name")
     end
 
     def album_name
-      harmony_page.execute_js("TralbumData.current.title")
+      @album_name ||= harmony_page.execute_js("TralbumData.current.title")
     end
 
     def download
@@ -47,7 +47,16 @@ module BandCamp
       unless @options[:try]
         `mkdir -p #{dir}`
       end
-      songs.each_with_index { |song, index| song.download(dir, index) }
+
+      number_of_tracks = songs.size
+
+      songs.each_with_index { |song, index|
+        song.download(dir,
+                      :index => index,
+                      :number_of_tracks => number_of_tracks,
+                      :band_name => band_name,
+                      :album_name => album_name)
+      }
     end
 
     def path_for_download
