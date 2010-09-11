@@ -13,9 +13,13 @@ module BandCamp
     def page_html
       unless @page_html
         puts "Getting content of \"#{@url}\"" if @options[:debug]
-        @page_html = Net::HTTP.get(URI.parse(@url))
+        @page_html = Net::HTTP.get(parsed_url)
       end
       @page_html
+    end
+
+    def parsed_url
+      @parsed_url ||= URI.parse(@url)
     end
 
     def harmony_page
@@ -26,6 +30,13 @@ module BandCamp
         @harmony_page = Harmony::Page.new(html)
       end
       @harmony_page
+    end
+
+    def is_album?
+      harmony_page.execute_js("TralbumData.current")
+      return true
+    rescue Johnson::Error
+      return false
     end
 
     def songs
@@ -42,7 +53,38 @@ module BandCamp
       @album_name ||= harmony_page.execute_js("TralbumData.current.title")
     end
 
+    def urls_of_albums_on_this_page
+      hpricot.search(".ipCell h1 a").map { |a| extend_relative_url(a.attributes["href"]) }
+    end
+
     def download
+      if is_album?
+        download_songs_for_this_album
+      else
+        download_albums_on_this_page
+      end
+    end
+
+    def extend_relative_url(relative_url)
+      url = URI.parse(relative_url)
+      url.scheme = "http"
+      url.host = parsed_url.host
+      url.to_s
+    end
+
+    def path_for_download
+      File.join("download",
+                BandCamp::file_safe_string(band_name),
+                BandCamp::file_safe_string(album_name))
+    end
+
+    def hpricot
+      @hpricot ||= Hpricot.parse(page_html)
+    end
+
+    private
+
+    def download_songs_for_this_album
       dir = path_for_download
       unless @options[:try]
         `mkdir -p #{dir}`
@@ -61,17 +103,19 @@ module BandCamp
       download_album_art
     end
 
-    def path_for_download
-      File.join("download",
-                BandCamp::file_safe_string(band_name),
-                BandCamp::file_safe_string(album_name))
+    def download_albums_on_this_page
+      if @options[:all]
+        puts "Downloading all albums" if @options[:debug]
+        urls_of_albums_on_this_page.sort.each do |album_url|
+          puts "Now downloading: #{album_url}" if @options[:debug]
+          Page.new(album_url, @options).download
+        end
+      else
+        puts "This url does not contain songs, but only a list of albums/tracks:"
+        urls_of_albums_on_this_page.sort.each { |u| puts "- #{u}" }
+        puts "You can either download those urls individually or pass the -a flag to download them all"
+      end
     end
-
-    def hpricot
-      @hpricot ||= Hpricot.parse(page_html)
-    end
-
-    private
 
     def download_album_art
       # Assumes the directory where the album is downloaded already exists

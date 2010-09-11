@@ -10,12 +10,12 @@ module BandCamp
         OptionParser.new do |opts|
           opts.banner = "Usage: example.rb [options]"
 
-          opts.on("-t", "--true", "Do not download any mp3 files") do |v|
-            options[:try] = v
-          end
-
           opts.on("-d", "--[no-]debug", "Output debug information") do |v|
             options[:debug] = v
+          end
+
+          opts.on("-a", "--all", "If the url does not contain songs but links to tracks/albums: download all those") do |v|
+            options[:all] = v
           end
         end.parse!
         options
