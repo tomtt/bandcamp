@@ -17,7 +17,7 @@ else
   usage = <<EOT
 Usage: #{$0} http://example.bandcamp.com [http://otherexample.bandcamp.com/]*
 This script finds all the songs shown on the bandcamp page and downloads them to
-./download/band_name/0x-track_name.mp3
+./band_name/xx-track_name.mp3
 EOT
   STDERR.puts usage
 end
